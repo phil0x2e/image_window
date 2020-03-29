@@ -48,7 +48,8 @@ impl ImageWindow {
 
     pub fn set_from_image(&mut self, img: &DynamicImage) {
         let rgb_img = img.to_rgb();
-        let mut buf = Vec::new();
+        let img_dim = rgb_img.dimensions();
+        let mut buf = Vec::with_capacity((img_dim.0*img_dim.1) as usize);
         for pixel in rgb_img.enumerate_pixels() {
             let r = pixel.2[0];
             let g = pixel.2[1];
@@ -65,7 +66,8 @@ impl ImageWindow {
         let size = self.window.get_size();
         let scaled = img.resize(size.0 as u32, size.1 as u32, self.filter);
         let rgb_img = scaled.to_rgb();
-        let mut buf = Vec::new();
+        let img_dim = rgb_img.dimensions();
+        let mut buf = Vec::with_capacity((img_dim.0*img_dim.1) as usize);
         for pixel in rgb_img.enumerate_pixels() {
             let r = pixel.2[0];
             let g = pixel.2[1];
