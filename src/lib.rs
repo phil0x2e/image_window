@@ -12,6 +12,17 @@ pub struct ImageWindow {
 }
 
 impl ImageWindow {
+    pub fn new(name: &str, width: usize, height: usize, opts: WindowOptions) -> MiniResult<Self> {
+        let window = Window::new(name, width, height, opts);
+        match window {
+            Err(e) => Err(e),
+            Ok(w) => Ok(ImageWindow {
+                window: w,
+                buffer: Vec::new(),
+            }),
+        }
+    }
+
     // Window methods
     pub fn add_menu(&mut self, menu: &Menu) -> MenuHandle {
         self.window.add_menu(menu)
