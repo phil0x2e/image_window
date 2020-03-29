@@ -2,7 +2,7 @@ extern crate image;
 extern crate minifb;
 use core::ffi::c_void;
 use core::time::Duration;
-use image::imageops::FilterType;
+pub use image::imageops::FilterType;
 use image::DynamicImage;
 pub use minifb::{
     CursorStyle, InputCallback, Key, KeyRepeat, Menu, MenuHandle, MouseButton, MouseMode,
@@ -15,11 +15,17 @@ pub struct ImageWindow {
     buffer_width: usize,
     buffer_height: usize,
     raw_image: Option<DynamicImage>,
+    filter: FilterType,
 }
 
 impl ImageWindow {
-    pub fn new(name: &str, width: usize, height: usize, opts: WindowOptions) -> MiniResult<Self> {
+    pub fn new(name: &str, width: usize, height: usize, opts: WindowOptions, filter: Option<FilterType>) -> MiniResult<Self> {
         let window = Window::new(name, width, height, opts);
+        let filter = match filter {
+            Some(f) => f,
+            None => FilterType::Triangle
+        };
+
         match window {
             Err(e) => Err(e),
             Ok(w) => Ok(ImageWindow {
@@ -28,6 +34,7 @@ impl ImageWindow {
                 buffer_width: 0,
                 buffer_height: 0,
                 raw_image: None,
+                filter
             }),
         }
     }
@@ -61,7 +68,7 @@ impl ImageWindow {
             match &self.raw_image {
                 Some(img) => {
                     let size = self.window.get_size();
-                    let scaled = img.resize(size.0 as u32, size.1 as u32, FilterType::Gaussian);
+                    let scaled = img.resize(size.0 as u32, size.1 as u32, self.filter);
                     self.set_from_image(scaled);
                 }
                 None => panic!("No image was set!"),
