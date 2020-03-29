@@ -60,15 +60,12 @@ impl ImageWindow {
         let img_dim = rgb_img.dimensions();
         let mut buf = Vec::with_capacity((img_dim.0 * img_dim.1) as usize);
         for pixel in rgb_img.enumerate_pixels() {
-            let r = pixel.2[0];
-            let g = pixel.2[1];
-            let b = pixel.2[2];
-            let rgb = from_u8_rgb(r, g, b);
+            let rgb = from_u8_rgb(pixel.2[0], pixel.2[1], pixel.2[2]);
             buf.push(rgb);
         }
         self.buffer = buf;
-        self.buffer_width = rgb_img.dimensions().0 as usize;
-        self.buffer_height = rgb_img.dimensions().1 as usize;
+        self.buffer_width = img_dim.0 as usize;
+        self.buffer_height = img_dim.1 as usize;
     }
 
     pub fn set_image_from_path(&mut self, path: &str) -> Result<(), io::Error> {
