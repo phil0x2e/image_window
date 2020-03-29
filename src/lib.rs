@@ -46,8 +46,25 @@ impl ImageWindow {
         }
     }
 
-    pub fn set_from_image(&mut self, img: DynamicImage) {
+    pub fn set_from_image(&mut self, img: &DynamicImage) {
         let rgb_img = img.to_rgb();
+        let mut buf = Vec::new();
+        for pixel in rgb_img.enumerate_pixels() {
+            let r = pixel.2[0];
+            let g = pixel.2[1];
+            let b = pixel.2[2];
+            let rgb = from_u8_rgb(r, g, b);
+            buf.push(rgb);
+        }
+        self.buffer = buf;
+        self.buffer_width = rgb_img.dimensions().0 as usize;
+        self.buffer_height = rgb_img.dimensions().1 as usize;
+    }
+
+    pub fn set_from_image_fit(&mut self, img: &DynamicImage) {
+        let size = self.window.get_size();
+        let scaled = img.resize(size.0 as u32, size.1 as u32, self.filter);
+        let rgb_img = scaled.to_rgb();
         let mut buf = Vec::new();
         for pixel in rgb_img.enumerate_pixels() {
             let r = pixel.2[0];
@@ -66,9 +83,20 @@ impl ImageWindow {
             Ok(i) => i,
             Err(_e) => return Err(io::Error::new(std::io::ErrorKind::NotFound, "File could not be opened. It may not exist or may not be of a supported type.")),
         };
-        let img_copy = img.clone();
+        self.set_from_image(&img);
         self.raw_image = Some(img);
-        self.set_from_image(img_copy);
+        Ok(())
+    }
+
+    pub fn set_image_from_path_fit(&mut self, path: &str) -> Result<(), io::Error> {
+        let size = self.window.get_size();
+        let img = match image::open(path) {
+            Ok(i) => i,
+            Err(_e) => return Err(io::Error::new(std::io::ErrorKind::NotFound, "File could not be opened. It may not exist or may not be of a supported type.")),
+        };
+        let scaled = img.resize(size.0 as u32, size.1 as u32, self.filter);
+        self.raw_image = Some(img);
+        self.set_from_image(&scaled);
         Ok(())
     }
 
@@ -79,7 +107,7 @@ impl ImageWindow {
             if let Some(img) = &self.raw_image {
                 let size = self.window.get_size();
                 let scaled = img.resize(size.0 as u32, size.1 as u32, self.filter);
-                self.set_from_image(scaled);
+                self.set_from_image(&scaled);
             }
         }
     }
