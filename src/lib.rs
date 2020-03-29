@@ -58,7 +58,7 @@ impl ImageWindow {
 
     fn set_from_rgb_image(&mut self, rgb_img: RgbImage) {
         let img_dim = rgb_img.dimensions();
-        let mut buf = Vec::with_capacity((img_dim.0*img_dim.1) as usize);
+        let mut buf = Vec::with_capacity((img_dim.0 * img_dim.1) as usize);
         for pixel in rgb_img.enumerate_pixels() {
             let r = pixel.2[0];
             let g = pixel.2[1];
@@ -72,20 +72,28 @@ impl ImageWindow {
     }
 
     pub fn set_image_from_path(&mut self, path: &str) -> Result<(), io::Error> {
-        let img = match image::open(path) {
-            Ok(i) => i,
-            Err(_e) => return Err(io::Error::new(std::io::ErrorKind::NotFound, "File could not be opened. It may not exist or may not be of a supported type.")),
-        };
+        let img =
+            match image::open(path) {
+                Ok(i) => i,
+                Err(_e) => return Err(io::Error::new(
+                    std::io::ErrorKind::NotFound,
+                    "File could not be opened. It may not exist or may not be of a supported type.",
+                )),
+            };
         self.set_from_image(&img);
         self.raw_image = Some(img);
         Ok(())
     }
 
     pub fn set_image_from_path_fit(&mut self, path: &str) -> Result<(), io::Error> {
-        let img = match image::open(path) {
-            Ok(i) => i,
-            Err(_e) => return Err(io::Error::new(std::io::ErrorKind::NotFound, "File could not be opened. It may not exist or may not be of a supported type.")),
-        };
+        let img =
+            match image::open(path) {
+                Ok(i) => i,
+                Err(_e) => return Err(io::Error::new(
+                    std::io::ErrorKind::NotFound,
+                    "File could not be opened. It may not exist or may not be of a supported type.",
+                )),
+            };
         self.set_from_image_fit(&img);
         self.raw_image = Some(img);
         Ok(())
