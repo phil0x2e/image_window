@@ -1,14 +1,20 @@
 extern crate minifb;
+extern crate image;
 use core::ffi::c_void;
 use core::time::Duration;
-use minifb::{
+pub use minifb::{
     CursorStyle, InputCallback, Key, KeyRepeat, Menu, MenuHandle, MouseButton, MouseMode,
-    Result as MiniResult, UnixMenu, Window, WindowOptions,
+    Result as MiniResult, ScaleMode, UnixMenu, Window, WindowOptions,
 };
+use image::DynamicImage;
+use image::imageops::FilterType;
 
 pub struct ImageWindow {
     window: Window,
     buffer: Vec<u32>,
+    buffer_width: usize,
+    buffer_height: usize,
+    current_path: String
 }
 
 impl ImageWindow {
@@ -19,7 +25,50 @@ impl ImageWindow {
             Ok(w) => Ok(ImageWindow {
                 window: w,
                 buffer: Vec::new(),
+                buffer_width: 0,
+                buffer_height: 0,
+                current_path: String::new()
             }),
+        }
+    }
+
+    fn set_image(&mut self, img: DynamicImage) {
+        let rgb_img = img.to_rgb();
+        let mut buf = Vec::new();
+        for pixel in rgb_img.enumerate_pixels() {
+            let r = pixel.2[0];
+            let g = pixel.2[1];
+            let b = pixel.2[2];
+            let rgb = from_u8_rgb(r, g, b);
+            buf.push(rgb);
+        }
+        self.buffer = buf;
+        self.buffer_width = rgb_img.dimensions().0 as usize;
+        self.buffer_height = rgb_img.dimensions().1 as usize;
+    }
+
+    pub fn set_image_from_path(&mut self, path: &str) {
+        let img = image::open(path).unwrap();
+        self.set_image(img);
+        self.current_path = String::from(path);
+    }
+
+    pub fn fit_to_screen(&mut self) {
+        if self.buffer_width != self.window.get_size().0 && self.buffer_height != self.window.get_size().1{
+            let size = self.window.get_size();
+            let img = image::open(&self.current_path).unwrap();
+            let scaled = img.resize(size.0 as u32, size.1 as u32, FilterType::Gaussian);
+            self.set_image(scaled);
+        }
+    }
+
+    pub fn update(&mut self) {
+        if self.buffer.len() > 0 && self.buffer_width > 0 && self.buffer_height > 0 {
+            self.window
+                .update_with_buffer(&self.buffer, self.buffer_width, self.buffer_height)
+                .unwrap();
+        } else {
+            self.window.update();
         }
     }
 
@@ -99,9 +148,6 @@ impl ImageWindow {
     pub fn set_title(&mut self, title: &str) {
         self.window.set_title(title);
     }
-    pub fn update(&mut self) {
-        self.window.update();
-    }
     pub fn update_with_buffer(
         &mut self,
         buffer: &[u32],
@@ -110,6 +156,11 @@ impl ImageWindow {
     ) -> MiniResult<()> {
         self.window.update_with_buffer(buffer, width, height)
     }
+}
+
+fn from_u8_rgb(r: u8, g: u8, b: u8) -> u32 {
+    let (r, g, b) = (r as u32, g as u32, b as u32);
+    (r << 16) | (g << 8) | b
 }
 
 #[cfg(test)]
