@@ -1,5 +1,5 @@
 extern crate image_window;
-use image_window::{FilterType, ImageWindow, Key, ScaleMode, WindowOptions};
+use image_window::{FilterType, ImageWindow, Key, Scale, ScaleMode, WindowOptions};
 
 fn main() {
     let mut window = ImageWindow::new(
@@ -8,10 +8,10 @@ fn main() {
         600,
         WindowOptions {
             resize: true,
-            scale_mode: ScaleMode::Center,
+            scale_mode: ScaleMode::AspectRatioStretch,
             ..WindowOptions::default()
         },
-        None
+        None,
     )
     .unwrap();
 
@@ -24,12 +24,12 @@ fn main() {
 
     while window.is_open() && !window.is_key_down(Key::Escape) {
         if window.is_key_released(Key::Key1) {
-            window.set_from_image_fit(&i1);
+            window.set_from_image(&i1);
         }
         if window.is_key_released(Key::Key2) {
-            window.set_from_image_fit(&i2);
+            window.set_from_image(&i2);
         }
-        window.fit_to_screen();
+        //window.fit_to_screen();
         window.update();
     }
 }

@@ -6,7 +6,7 @@ pub use image::imageops::FilterType;
 use image::{DynamicImage, RgbImage};
 pub use minifb::{
     CursorStyle, InputCallback, Key, KeyRepeat, Menu, MenuHandle, MouseButton, MouseMode,
-    Result as MiniResult, ScaleMode, UnixMenu, Window, WindowOptions,
+    Result as MiniResult, Scale, ScaleMode, UnixMenu, Window, WindowOptions,
 };
 use std::io;
 
