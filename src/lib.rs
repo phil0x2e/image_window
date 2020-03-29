@@ -2,8 +2,8 @@ extern crate minifb;
 use core::ffi::c_void;
 use core::time::Duration;
 use minifb::{
-    CursorStyle, InputCallback, Key, KeyRepeat, Menu, MenuHandle, MouseButton, MouseMode, UnixMenu,
-    Window, WindowOptions,
+    CursorStyle, InputCallback, Key, KeyRepeat, Menu, MenuHandle, MouseButton, MouseMode,
+    Result as MiniResult, UnixMenu, Window, WindowOptions,
 };
 
 pub struct ImageWindow {
@@ -96,8 +96,8 @@ impl ImageWindow {
         buffer: &[u32],
         width: usize,
         height: usize,
-    ) -> Result<()> {
-        self.update_with_buffer(buffer, width, height)
+    ) -> MiniResult<()> {
+        self.window.update_with_buffer(buffer, width, height)
     }
 }
 
