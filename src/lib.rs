@@ -1,20 +1,20 @@
-extern crate minifb;
 extern crate image;
+extern crate minifb;
 use core::ffi::c_void;
 use core::time::Duration;
+use image::imageops::FilterType;
+use image::DynamicImage;
 pub use minifb::{
     CursorStyle, InputCallback, Key, KeyRepeat, Menu, MenuHandle, MouseButton, MouseMode,
     Result as MiniResult, ScaleMode, UnixMenu, Window, WindowOptions,
 };
-use image::DynamicImage;
-use image::imageops::FilterType;
 
 pub struct ImageWindow {
     window: Window,
     buffer: Vec<u32>,
     buffer_width: usize,
     buffer_height: usize,
-    current_path: String
+    raw_image: Option<DynamicImage>,
 }
 
 impl ImageWindow {
@@ -27,12 +27,12 @@ impl ImageWindow {
                 buffer: Vec::new(),
                 buffer_width: 0,
                 buffer_height: 0,
-                current_path: String::new()
+                raw_image: None,
             }),
         }
     }
 
-    fn set_image(&mut self, img: DynamicImage) {
+    pub fn set_from_image(&mut self, img: DynamicImage) {
         let rgb_img = img.to_rgb();
         let mut buf = Vec::new();
         for pixel in rgb_img.enumerate_pixels() {
@@ -49,16 +49,23 @@ impl ImageWindow {
 
     pub fn set_image_from_path(&mut self, path: &str) {
         let img = image::open(path).unwrap();
-        self.set_image(img);
-        self.current_path = String::from(path);
+        let img_copy = img.clone();
+        self.raw_image = Some(img);
+        self.set_from_image(img_copy);
     }
 
     pub fn fit_to_screen(&mut self) {
-        if self.buffer_width != self.window.get_size().0 && self.buffer_height != self.window.get_size().1{
-            let size = self.window.get_size();
-            let img = image::open(&self.current_path).unwrap();
-            let scaled = img.resize(size.0 as u32, size.1 as u32, FilterType::Gaussian);
-            self.set_image(scaled);
+        if self.buffer_width != self.window.get_size().0
+            && self.buffer_height != self.window.get_size().1
+        {
+            match &self.raw_image {
+                Some(img) => {
+                    let size = self.window.get_size();
+                    let scaled = img.resize(size.0 as u32, size.1 as u32, FilterType::Gaussian);
+                    self.set_from_image(scaled);
+                }
+                None => panic!("No image was set!"),
+            }
         }
     }
 
