@@ -18,7 +18,7 @@ fn main() {
     // Limit to max ~60 fps update rate
     window.limit_update_rate(Some(std::time::Duration::from_micros(16600)));
 
-    window.set_image_from_path("test.jpg");
+    window.set_image_from_path("uv.png").unwrap();
 
     while window.is_open() && !window.is_key_down(Key::Escape) {
         window.fit_to_screen();

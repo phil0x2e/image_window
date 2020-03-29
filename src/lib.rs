@@ -8,6 +8,7 @@ pub use minifb::{
     CursorStyle, InputCallback, Key, KeyRepeat, Menu, MenuHandle, MouseButton, MouseMode,
     Result as MiniResult, ScaleMode, UnixMenu, Window, WindowOptions,
 };
+use std::io;
 
 pub struct ImageWindow {
     window: Window,
@@ -19,11 +20,17 @@ pub struct ImageWindow {
 }
 
 impl ImageWindow {
-    pub fn new(name: &str, width: usize, height: usize, opts: WindowOptions, filter: Option<FilterType>) -> MiniResult<Self> {
+    pub fn new(
+        name: &str,
+        width: usize,
+        height: usize,
+        opts: WindowOptions,
+        filter: Option<FilterType>,
+    ) -> MiniResult<Self> {
         let window = Window::new(name, width, height, opts);
         let filter = match filter {
             Some(f) => f,
-            None => FilterType::Triangle
+            None => FilterType::Triangle,
         };
 
         match window {
@@ -34,7 +41,7 @@ impl ImageWindow {
                 buffer_width: 0,
                 buffer_height: 0,
                 raw_image: None,
-                filter
+                filter,
             }),
         }
     }
@@ -54,24 +61,25 @@ impl ImageWindow {
         self.buffer_height = rgb_img.dimensions().1 as usize;
     }
 
-    pub fn set_image_from_path(&mut self, path: &str) {
-        let img = image::open(path).unwrap();
+    pub fn set_image_from_path(&mut self, path: &str) -> Result<(), io::Error> {
+        let img = match image::open(path) {
+            Ok(i) => i,
+            Err(_e) => return Err(io::Error::new(std::io::ErrorKind::NotFound, "File could not be opened. It may not exist or may not be of a supported type.")),
+        };
         let img_copy = img.clone();
         self.raw_image = Some(img);
         self.set_from_image(img_copy);
+        Ok(())
     }
 
     pub fn fit_to_screen(&mut self) {
         if self.buffer_width != self.window.get_size().0
             && self.buffer_height != self.window.get_size().1
         {
-            match &self.raw_image {
-                Some(img) => {
-                    let size = self.window.get_size();
-                    let scaled = img.resize(size.0 as u32, size.1 as u32, self.filter);
-                    self.set_from_image(scaled);
-                }
-                None => panic!("No image was set!"),
+            if let Some(img) = &self.raw_image {
+                let size = self.window.get_size();
+                let scaled = img.resize(size.0 as u32, size.1 as u32, self.filter);
+                self.set_from_image(scaled);
             }
         }
     }
