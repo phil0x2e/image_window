@@ -118,6 +118,13 @@ impl ImageWindow {
         }
     }
 
+    pub fn clear(&mut self) {
+        self.buffer = Vec::new();
+        self.buffer_width = 0;
+        self.buffer_height = 0;
+        self.raw_image = None;
+    }
+
     // Window methods
     pub fn add_menu(&mut self, menu: &Menu) -> MenuHandle {
         self.window.add_menu(menu)
