@@ -48,12 +48,14 @@ impl ImageWindow {
 
     pub fn set_from_image(&mut self, img: &DynamicImage) {
         self.set_from_rgb_image(img.to_rgb());
+        self.raw_image = Some(img.clone());
     }
 
     pub fn set_from_image_fit(&mut self, img: &DynamicImage) {
         let size = self.window.get_size();
         let scaled = img.resize(size.0 as u32, size.1 as u32, self.filter);
         self.set_from_rgb_image(scaled.to_rgb());
+        self.raw_image = Some(img.clone());
     }
 
     fn set_from_rgb_image(&mut self, rgb_img: RgbImage) {
@@ -78,7 +80,6 @@ impl ImageWindow {
                 )),
             };
         self.set_from_image(&img);
-        self.raw_image = Some(img);
         Ok(())
     }
 
@@ -92,7 +93,6 @@ impl ImageWindow {
                 )),
             };
         self.set_from_image_fit(&img);
-        self.raw_image = Some(img);
         Ok(())
     }
 
@@ -115,6 +115,27 @@ impl ImageWindow {
                 .unwrap();
         } else {
             self.window.update();
+        }
+    }
+
+    pub fn rotate90(&mut self) {
+        if let Some(img) = &self.raw_image {
+            let rotated = img.rotate90();
+            self.set_from_image(&rotated);
+        }
+    }
+
+    pub fn rotate180(&mut self) {
+        if let Some(img) = &self.raw_image {
+            let rotated = img.rotate180();
+            self.set_from_image(&rotated);
+        }
+    }
+
+    pub fn rotate270(&mut self) {
+        if let Some(img) = &self.raw_image {
+            let rotated = img.rotate270();
+            self.set_from_image(&rotated);
         }
     }
 
