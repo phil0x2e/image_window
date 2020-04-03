@@ -46,6 +46,25 @@ impl ImageWindow {
         }
     }
 
+    fn translate_pos_on_window_to_pos_on_raw_image(&self, pos_on_window: (u32, u32)){
+    }
+
+    pub fn zoom(&mut self, pos: (u32, u32), factor: f64) {
+        if let Some(img) = &self.raw_image {
+            let rgb_img = img.to_rgb();
+            let width = (self.buffer_width as f64 * factor) as u32;
+            println!("{} {:?}", width, rgb_img.dimensions());
+            let height = (self.buffer_height as f64 * factor) as u32;
+            let x = pos.0.checked_sub(width / 2).unwrap_or(0);
+            let y = pos.1.checked_sub(height / 2).unwrap_or(0);
+
+            // Problem: Es muss an original raw image gecropt werden, da es die bessere Auflösung hat, die
+            // Koordinaten sind aber bezogen auf das Fenster, welches evtl. auch schwarze Balken hat
+            let zoomed = img.clone().crop(x, y, width, height);
+            self.set_from_image(&zoomed);
+        }
+    }
+
     pub fn set_from_image(&mut self, img: &DynamicImage) {
         self.set_from_rgb_image(img.to_rgb());
         self.raw_image = Some(img.clone());
